@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f5f2" />
+    <title>Daymark — Task tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/web/styles.css" />
+    <script src="/web/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/web/index.html" aria-label="Daymark home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>daymark<span class="brand-period">.</span></span>
+        </a>
+        <div class="topbar-note"><span class="online-dot" aria-hidden="true"></span> A little more focus, every day</div>
+        <div class="avatar" aria-label="Your workspace">Y</div>
+      </header>
+
+      <main class="main-content">
+        <section class="welcome" aria-labelledby="page-title">
+          <div class="eyebrow"><span class="eyebrow-line"></span> YOUR PERSONAL SPACE</div>
+          <h1 id="page-title">Make room for<br /><span>what matters.</span></h1>
+          <p class="welcome-copy">A clear mind starts with a clear list. Take it one thing at a time.</p>
+        </section>
+
+        <section class="workspace" aria-label="Task tracker">
+          <div class="workspace-heading">
+            <div>
+              <div class="section-kicker">YOUR LIST</div>
+              <h2>Today’s focus</h2>
+            </div>
+            <div class="task-count" aria-live="polite"><span id="remaining-count">—</span><span id="remaining-label"> tasks left</span></div>
+          </div>
+
+          <form id="task-form" class="task-form" novalidate>
+            <label class="sr-only" for="task-title">Add a task</label>
+            <span class="input-plus" aria-hidden="true">＋</span>
+            <input id="task-title" name="title" type="text" placeholder="What needs your attention?" autocomplete="off" required />
+            <span id="character-count" class="character-count" aria-hidden="true">0/200</span>
+            <button class="add-button" type="submit"><span>Add task</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <p id="form-error" class="inline-error" role="alert" hidden></p>
+
+          <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+          <div id="task-region" class="task-region" aria-busy="true">
+            <div id="loading-state" class="loading-state">
+              <span class="spinner" aria-hidden="true"></span><span>Gathering your tasks…</span>
+            </div>
+            <div id="error-state" class="error-state" hidden>
+              <span class="error-icon" aria-hidden="true">!</span>
+              <div><strong>We couldn’t load your list.</strong><p id="error-message">Check your connection and try again.</p></div>
+              <button id="retry-button" class="text-button" type="button">Try again</button>
+            </div>
+            <div id="empty-state" class="empty-state" hidden>
+              <div class="empty-art" aria-hidden="true"><span>✓</span></div>
+              <strong>A fresh page.</strong>
+              <p>Add one small thing you’d like to move forward today.</p>
+            </div>
+            <ul id="task-list" class="task-list" aria-label="Your tasks" hidden></ul>
+          </div>
+
+          <footer class="list-footer">
+            <span><span class="footer-sparkle" aria-hidden="true">✳</span> Small steps add up.</span>
+            <span id="completed-summary"></span>
+          </footer>
+        </section>
+
+        <p class="page-note">Keep your day yours. <span>✦</span></p>
+      </main>
+      <footer class="site-footer"><span>DAYMARK</span><span>MADE FOR THE MOMENT YOU’RE IN</span><span>01 / 01</span></footer>
+    </div>
+  </body>
+</html>
