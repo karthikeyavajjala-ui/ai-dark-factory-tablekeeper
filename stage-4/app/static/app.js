@@ -497,7 +497,7 @@
       ]),
       h('div', { class: 'legend' }, [
         h('span', {}, [h('i', { class: 'swatch free' }), 'Available']),
-        h('span', {}, [h('i', { class: 'swatch taken' }), 'Already booked']),
+        h('span', {}, [h('i', { class: 'swatch taken' }), 'Not available']),
         h('span', {}, [h('i', { class: 'swatch pair' }), 'Combined tables'])
       ]),
       h('div', { class: 'grid-wrap' }, [grid])
