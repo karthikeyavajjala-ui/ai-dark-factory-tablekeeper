@@ -85,7 +85,9 @@ copy of the code.
    process and an isolated container.
 4. The Quartermaster rebuilds each folder the way a judge does — clean container, no
    network — and reports numbers instead of confidence.
-5. The chain check (`build_stages.py --check`) and the offline submission check
+5. The Quartermaster follows each folder's runbook literally, in a clean container, and runs
+   the examples in it — a document that no longer matches the artifact is a defect.
+6. The chain check (`build_stages.py --check`) and the offline submission check
    (`harness check`) catch the failures that are invisible in the working tree: stages that
    have drifted, a folder that is not self-contained, a mandate that names the problem
    instead of the factory, a credential in a file that is about to be published.
@@ -115,6 +117,16 @@ copy of the code.
 - **Assuming the tooling environment.** The browser checks needed system libraries that were
   not installed, and the Docker socket was not reachable as the current user; both were
   fixed in the environment rather than worked around in the repository.
+- **A check that edited what it was checking.** The drift check compared each generated file
+  by deleting it from the working tree, so a report run left three folders without the one
+  file their container imports. A judge would have built an image that died at import.
+  Found by running a folder's own runbook in a container, not by any passing suite; the fix
+  compares the generated file against what the generator would write, and a regression test
+  digests the whole tree before and after a report run.
+- **A runbook that described a later stage.** The stage-1 runbook's worked example booked two
+  combined tables — a stage-2 feature — so following it returned an error. The runbooks are
+  generated too now, and the stage-1 variant is checked by running it in a clean container
+  and asserting the example returns 201.
 
 ## Measured costs and time
 
@@ -122,7 +134,7 @@ Measured on 2026-10-04 in this tree (commands are in `README.md`):
 
 | What | Number |
 |---|---|
-| Repository checks | 97 tests, 10.92 s |
+| Repository checks | 102 tests, ~11 s |
 | Shipped suites on the stage-4 folder | 120 + 25 + 7 + 6 checks, ~45 s |
 | Official harness, all folders, isolated containers | every folder claims its stage, `share 1.0` |
 | Container image | 127 MB |
@@ -130,6 +142,7 @@ Measured on 2026-10-04 in this tree (commands are in `README.md`):
 | Idle resident memory | 21 MiB (limit 2 GiB) |
 | 200 availability reads, 50 in flight | 0.14 s wall, p95 35 ms, 0 errors |
 | 50 concurrent creates on one key | 1 × 201, 49 × 200, one booking |
+| Each folder's runbook followed in a clean container | stage 1 single-table booking `201`, stage 4 combined booking `201`, isolated health `200` |
 
 Per-seat model time and token spend are not recorded here: the room has not been run yet,
 and inventing those numbers would defeat the point of the log. When the band runs, its costs

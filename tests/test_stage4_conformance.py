@@ -70,19 +70,20 @@ def test_the_plan_moves_what_the_closure_forces(client):
     staying = book(client, token, "k-staying", table="t_2")
     plan = replan(client, token, table="t_1")
     assert plan["restaurant_revision"] == 2          # two bookings so far
-    assert [item["reference"] for item in plan["assignments"]] == \
-        [doomed["reference"], staying["reference"]]
-    assert plan["assignments"][0] == {"reference": doomed["reference"],
-                                      "table_ids": ["t_3"], "changed": True}
-    assert plan["assignments"][1] == {"reference": staying["reference"],
-                                      "table_ids": ["t_2"], "changed": False}
+    # Assignments arrive in reference order, which is not the order they were booked.
+    references = sorted([doomed["reference"], staying["reference"]])
+    assert [item["reference"] for item in plan["assignments"]] == references
+    by_reference = {item["reference"]: item for item in plan["assignments"]}
+    assert by_reference[doomed["reference"]] == {"reference": doomed["reference"],
+                                                 "table_ids": ["t_3"], "changed": True}
+    assert by_reference[staying["reference"]] == {"reference": staying["reference"],
+                                                  "table_ids": ["t_2"], "changed": False}
     assert plan["moved_count"] == 1
     assert plan["unused_seats"] == 4                 # t_3 seats 2, so four seats idle
     applied = apply_plan(client, token, plan["plan_id"], key="k-apply-1")
     assert applied["restaurant_revision"] == 3       # one plan, one increment
     assert applied["plan_id"] == plan["plan_id"]
-    assert [item["reference"] for item in applied["reservations"]] == \
-        [doomed["reference"], staying["reference"]]
+    assert [item["reference"] for item in applied["reservations"]] == references
     moved = client.ok("GET", f"/reservations/{doomed['reference']}", token=token)
     assert moved["table_ids"] == ["t_3"] and moved["revision"] == 2
     assert moved["starts_at_local"] == doomed["starts_at_local"]

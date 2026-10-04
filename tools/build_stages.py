@@ -51,6 +51,29 @@ REPLAN = STAGE >= 4           # closure preview and application, series amendmen
 IGNORED = {"app/profile.py"}
 
 
+def STAGE1_RUNBOOK(text: str) -> str:
+    """A runbook that describes stage 1, not a later stage with a caveat.
+
+    Stage 1 has no browser product and one table per booking, so the example has to
+    book a single table: a reader following these commands must see a 201, not an error
+    about a field stage 1 never had.
+    """
+    text = text.replace("Open <http://127.0.0.1:8080/> for the booking site. The API is "
+                        "the same origin:",
+                        "The service is the API. There is no browser product at this "
+                        "stage, so `GET /` answers 404.")
+    text = text.replace("""# seed a restaurant and two diners""",
+                        """# seed a restaurant and a diner""")
+    text = text.replace("""               {"id": "t_2", "label": "2", "capacity": 4}],
+    "combinable": [["t_1", "t_2"]]}],""",
+                        """               {"id": "t_2", "label": "2", "capacity": 4}]}],""")
+    text = text.replace("""  -d '{"restaurant_id": "r_anker", "table_ids": ["t_1", "t_2"],
+       "starts_at_local": "2026-10-15T19:00", "party_size": 6}'""",
+                        """  -d '{"restaurant_id": "r_anker", "table_id": "t_2",
+       "starts_at_local": "2026-10-15T19:00", "party_size": 4}'""")
+    return text
+
+
 def materialise(stage: int, root: pathlib.Path) -> pathlib.Path:
     """Write the stage folder `stage` under `root` and return it."""
     target = root / f"stage-{stage}"
@@ -60,11 +83,13 @@ def materialise(stage: int, root: pathlib.Path) -> pathlib.Path:
     (target / "Dockerfile").write_text(
         (root / SOURCE / "Dockerfile").read_text().replace(
             "# TableKeeper -- stage 4.", f"# TableKeeper -- stage {stage}."))
-    (target / "RUN.md").write_text(
-        (root / SOURCE / "RUN.md").read_text()
-        .replace("stage 4", f"stage {stage}")
-        .replace("tablekeeper-stage4", f"tablekeeper-stage{stage}")
-        .replace("stage4", f"stage{stage}"))
+    runbook = ((root / SOURCE / "RUN.md").read_text()
+               .replace("stage 4", f"stage {stage}")
+               .replace("tablekeeper-stage4", f"tablekeeper-stage{stage}")
+               .replace("stage4", f"stage{stage}"))
+    if stage == 1:
+        runbook = STAGE1_RUNBOOK(runbook)
+    (target / "RUN.md").write_text(runbook)
     (target / "app" / "profile.py").write_text(PROFILE.format(stage=stage))
     if stage == 1:
         for relative in STAGE1_DROPS:
@@ -78,9 +103,14 @@ def materialise(stage: int, root: pathlib.Path) -> pathlib.Path:
     return target
 
 
+# Compared by content above, then ignored by the directory walk: `app/profile.py` is
+# the one file a stage folder is *meant* to differ in.
+IGNORE_IN_WALK = ["__pycache__", "profile.py"]
+
+
 def differences(a: pathlib.Path, b: pathlib.Path, prefix="") -> list:
     out = []
-    comparison = filecmp.dircmp(a, b, ignore=["__pycache__"])
+    comparison = filecmp.dircmp(a, b, ignore=list(IGNORE_IN_WALK))
     for name in comparison.left_only:
         out.append(f"{prefix}{name} is only in {a}")
     for name in comparison.right_only:
@@ -116,14 +146,16 @@ def main(argv=None) -> int:
                 problems.append(f"stage-{stage}/ is missing")
                 continue
             for relative in sorted(IGNORED):
+                # Compare the generated files against what this generator would write,
+                # and drop them from the *scratch* copy only: `--check` promises to
+                # change nothing, and an earlier revision of this loop deleted the
+                # working tree's profile.py -- which the container then could not import.
                 want = (expected / relative).read_bytes()
                 here = (current / relative).read_bytes() \
                     if (current / relative).is_file() else b""
                 if want != here:
                     problems.append(f"stage-{stage}/{relative} is out of date")
-                # Remove it from both trees: it is the one file meant to differ.
                 (expected / relative).unlink(missing_ok=True)
-                (current / relative).unlink(missing_ok=True)
             problems.extend(differences(current, expected))
     if problems:
         print("\n".join(problems), file=sys.stderr)

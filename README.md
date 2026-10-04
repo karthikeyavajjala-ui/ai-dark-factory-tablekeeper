@@ -92,7 +92,7 @@ Measured on 2026-10-04, in this working tree:
 
 | Check | Result |
 |---|---|
-| Repository checks | `97 passed in 10.92s` |
+| Repository checks | `102 passed in 10.98s` |
 | Shipped suites, stage 4 folder | stage 1 `120 passed`, stage 2 `25 passed`, stage 3 `7 passed`, stage 4 `6 passed` |
 | Official harness, `--stage 1 --mode isolated` | `stage 1: pass`, overshoot `stage 2: fail` (expected), `claimed stage: 1` |
 | Official harness, `--all --mode isolated` | every folder claims its stage, `share 1.0`, `claimed stage: 4 on the shipped checks` |
@@ -101,6 +101,7 @@ Measured on 2026-10-04, in this working tree:
 | Idle resident memory | `21 MiB` (limit: 2 GiB) |
 | 200 availability reads, 50 in flight | wall `0.14 s`, p95 `35 ms`, 0 errors |
 | 50 concurrent creates, one key | `1 × 201`, `49 × 200`, one booking stored |
+| Runbooks followed in clean containers | stage 1 booking `201`, stage 4 combined booking `201`, isolated health `200` |
 
 The full run logs are the harness's own `report.json` files; the numbers above are quoted
 from them and from the commands in "Running the checks".
